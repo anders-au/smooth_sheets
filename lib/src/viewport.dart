@@ -496,11 +496,10 @@ class _RenderSheetTranslate extends RenderTransform {
     // Horizontal centering is independent of sheet metrics and must be
     // available during the route's first frame. Vertical translation depends
     // on the model and is applied as soon as its metrics become available.
-    final dx = (_viewportWidth - childWidth) / 2;
     final dy = _model.hasMetrics
         ? _lastMeasuredSize.height - _model.offset
         : 0.0;
-    transform = Matrix4.translationValues(dx + _padding.left, dy, 0);
+    transform = Matrix4.translationValues(_padding.left, dy, 0);
   }
 
   // Mirrors `super._transform` as there is no public getter for it.
