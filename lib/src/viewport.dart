@@ -2,7 +2,6 @@
 library;
 
 import 'dart:math';
-import 'dart:developer' as developer;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -301,10 +300,6 @@ class SheetViewportState extends State<SheetViewport> {
 
     final viewportWidth =
         View.of(context).physicalSize.width / View.of(context).devicePixelRatio;
-    developer.log(
-      'build viewportWidth=$viewportWidth media=${MediaQuery.sizeOf(context)}',
-      name: 'smooth_sheets',
-    );
     return _InheritedSheetViewport(
       state: this,
       child: SizedBox(
@@ -475,11 +470,6 @@ class _RenderSheetTranslate extends RenderTransform {
     // The child width is known only after layout; update the transform now so
     // a capped sheet is centered in the full-width viewport.
     _invalidateTransformMatrix();
-    developer.log(
-      'layout constraints=$constraints size=$size child=${child!.size} '
-      'viewportWidth=$_viewportWidth transform=${_transform.storage}',
-      name: 'smooth_sheets',
-    );
     final expectedWidth = (_maxWidth ?? size.width).clamp(0.0, size.width);
     final childWidth = child!.size.width;
     if ((!_model.hasMetrics || childWidth != expectedWidth) &&
@@ -504,10 +494,11 @@ class _RenderSheetTranslate extends RenderTransform {
     // Horizontal centering is independent of sheet metrics and must be
     // available during the route's first frame. Vertical translation depends
     // on the model and is applied as soon as its metrics become available.
+    final dx = (_viewportWidth - childWidth) / 2;
     final dy = _model.hasMetrics
         ? _lastMeasuredSize.height - _model.offset
         : 0.0;
-    transform = Matrix4.translationValues(_padding.left, dy, 0);
+    transform = Matrix4.translationValues(dx + _padding.left, dy, 0);
   }
 
   // Mirrors `super._transform` as there is no public getter for it.
