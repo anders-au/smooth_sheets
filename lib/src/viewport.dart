@@ -470,6 +470,10 @@ class _RenderSheetTranslate extends RenderTransform {
     // The child width is known only after layout; update the transform now so
     // a capped sheet is centered in the full-width viewport.
     _invalidateTransformMatrix();
+    print(
+      'smooth_sheets geometry constraints=$constraints size=$size '
+      'child=${child!.size} viewport=$_viewportWidth transform=$_transform',
+    );
     final expectedWidth = (_maxWidth ?? size.width).clamp(0.0, size.width);
     final childWidth = child!.size.width;
     if ((!_model.hasMetrics || childWidth != expectedWidth) &&
