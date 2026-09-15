@@ -312,7 +312,7 @@ mixin ModalSheetRouteMixin<T> on ModalRoute<T> {
       position: animation.drive(
         transitionTween.chain(CurveTween(curve: effectiveCurve)),
       ),
-      child: child,
+      child: SizedBox.expand(child: child),
     );
   }
 
