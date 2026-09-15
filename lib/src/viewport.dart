@@ -298,14 +298,20 @@ class SheetViewportState extends State<SheetViewport> {
       );
     }());
 
+    final viewportWidth =
+        View.of(context).physicalSize.width / View.of(context).devicePixelRatio;
     return _InheritedSheetViewport(
       state: this,
-      child: _SheetTranslate(
-        padding: widget.padding,
-        maxWidth: widget.maxWidth,
-        viewportWidth: View.of(context).physicalSize.width /
-            View.of(context).devicePixelRatio,
-        child: widget.child,
+      child: OverflowBox(
+        alignment: Alignment.topCenter,
+        minWidth: viewportWidth,
+        maxWidth: viewportWidth,
+        child: _SheetTranslate(
+          padding: widget.padding,
+          maxWidth: widget.maxWidth,
+          viewportWidth: viewportWidth,
+          child: widget.child,
+        ),
       ),
     );
   }
