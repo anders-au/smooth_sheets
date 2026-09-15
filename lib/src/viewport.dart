@@ -224,6 +224,7 @@ class SheetViewport extends StatefulWidget {
   const SheetViewport({
     super.key,
     this.padding = EdgeInsets.zero,
+    this.maxWidth,
     required this.child,
   });
 
@@ -244,6 +245,9 @@ class SheetViewport extends StatefulWidget {
   /// See also:
   /// - [BareSheet.padding], which is similar but pads the sheet content.
   final EdgeInsets padding;
+
+  /// Maximum sheet width while the viewport remains full width.
+  final double? maxWidth;
 
   final Widget child;
 
@@ -295,7 +299,11 @@ class SheetViewportState extends State<SheetViewport> {
 
     return _InheritedSheetViewport(
       state: this,
-      child: _SheetTranslate(padding: widget.padding, child: widget.child),
+      child: _SheetTranslate(
+        padding: widget.padding,
+        maxWidth: widget.maxWidth,
+        child: widget.child,
+      ),
     );
   }
 
@@ -316,14 +324,20 @@ class _InheritedSheetViewport extends InheritedWidget {
 }
 
 class _SheetTranslate extends SingleChildRenderObjectWidget {
-  const _SheetTranslate({required super.child, required this.padding});
+  const _SheetTranslate({
+    required super.child,
+    required this.padding,
+    required this.maxWidth,
+  });
 
   final EdgeInsets padding;
+  final double? maxWidth;
   @override
   RenderObject createRenderObject(BuildContext context) {
     return _RenderSheetTranslate(
       model: SheetViewportState.of(context)!._modelView,
       padding: padding,
+      maxWidth: maxWidth,
       viewInsets: MediaQuery.viewInsetsOf(context),
       viewPadding: MediaQuery.viewPaddingOf(context),
     );
@@ -334,6 +348,7 @@ class _SheetTranslate extends SingleChildRenderObjectWidget {
     (renderObject as _RenderSheetTranslate)
       ..model = SheetViewportState.of(context)!._modelView
       ..padding = padding
+      ..maxWidth = maxWidth
       ..viewInsets = MediaQuery.viewInsetsOf(context)
       ..viewPadding = MediaQuery.viewPaddingOf(context);
   }
@@ -343,10 +358,12 @@ class _RenderSheetTranslate extends RenderTransform {
   _RenderSheetTranslate({
     required SheetModelView model,
     required EdgeInsets padding,
+    required double? maxWidth,
     required EdgeInsets viewInsets,
     required EdgeInsets viewPadding,
   }) : _model = model,
        _padding = padding,
+       _maxWidth = maxWidth,
        _viewInsets = viewInsets,
        _viewPadding = viewPadding,
        super(
@@ -369,10 +386,18 @@ class _RenderSheetTranslate extends RenderTransform {
   }
 
   EdgeInsets _padding;
+  double? _maxWidth;
   // ignore: avoid_setters_without_getters
   set padding(EdgeInsets value) {
     if (_padding != value) {
       _padding = value;
+      markNeedsLayout();
+    }
+  }
+
+  set maxWidth(double? value) {
+    if (_maxWidth != value) {
+      _maxWidth = value;
       markNeedsLayout();
     }
   }
@@ -410,9 +435,10 @@ class _RenderSheetTranslate extends RenderTransform {
     );
 
     size = constraints.biggest;
+    final sheetWidth = (_maxWidth ?? size.width).clamp(0.0, size.width);
     child!.layout(
       _SheetConstraints(
-        viewportSize: size,
+        viewportSize: Size(sheetWidth, size.height),
         viewportInsets: _viewInsets,
         viewportPadding: _padding,
         viewportViewPadding: _viewPadding,
@@ -425,7 +451,8 @@ class _RenderSheetTranslate extends RenderTransform {
       final dy = _lastMeasuredSize.height - _model.offset;
       // Update the translation value and mark this render object
       // as needing to be repainted.
-      transform = Matrix4.translationValues(_padding.left, dy, 0);
+      final dx = (size.width - (child?.size.width ?? size.width)) / 2;
+      transform = Matrix4.translationValues(dx + _padding.left, dy, 0);
     }
   }
 
