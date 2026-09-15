@@ -307,10 +307,8 @@ class SheetViewportState extends State<SheetViewport> {
     );
     return _InheritedSheetViewport(
       state: this,
-      child: OverflowBox(
-        alignment: Alignment.topCenter,
-        minWidth: viewportWidth,
-        maxWidth: viewportWidth,
+      child: SizedBox(
+        width: viewportWidth,
         child: _SheetTranslate(
           padding: widget.padding,
           maxWidth: widget.maxWidth,
