@@ -303,7 +303,8 @@ class SheetViewportState extends State<SheetViewport> {
       child: _SheetTranslate(
         padding: widget.padding,
         maxWidth: widget.maxWidth,
-        viewportWidth: MediaQuery.sizeOf(context).width,
+        viewportWidth: View.of(context).physicalSize.width /
+            View.of(context).devicePixelRatio,
         child: widget.child,
       ),
     );
@@ -465,11 +466,6 @@ class _RenderSheetTranslate extends RenderTransform {
     // The child width is known only after layout; update the transform now so
     // a capped sheet is centered in the full-width viewport.
     _invalidateTransformMatrix();
-    debugPrint(
-      '[smooth_sheets] viewport=$size sheetWidth=$sheetWidth '
-      'child=${child!.size} viewportWidth=$_viewportWidth '
-      'transform=${_transform.storage}',
-    );
     final expectedWidth = (_maxWidth ?? size.width).clamp(0.0, size.width);
     final childWidth = child!.size.width;
     if ((!_model.hasMetrics || childWidth != expectedWidth) &&
