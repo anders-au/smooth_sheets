@@ -2,6 +2,7 @@
 library;
 
 import 'dart:math';
+import 'dart:developer' as developer;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -300,6 +301,10 @@ class SheetViewportState extends State<SheetViewport> {
 
     final viewportWidth =
         View.of(context).physicalSize.width / View.of(context).devicePixelRatio;
+    developer.log(
+      'build viewportWidth=$viewportWidth media=${MediaQuery.sizeOf(context)}',
+      name: 'smooth_sheets',
+    );
     return _InheritedSheetViewport(
       state: this,
       child: OverflowBox(
@@ -472,6 +477,11 @@ class _RenderSheetTranslate extends RenderTransform {
     // The child width is known only after layout; update the transform now so
     // a capped sheet is centered in the full-width viewport.
     _invalidateTransformMatrix();
+    developer.log(
+      'layout constraints=$constraints size=$size child=${child!.size} '
+      'viewportWidth=$_viewportWidth transform=${_transform.storage}',
+      name: 'smooth_sheets',
+    );
     final expectedWidth = (_maxWidth ?? size.width).clamp(0.0, size.width);
     final childWidth = child!.size.width;
     if ((!_model.hasMetrics || childWidth != expectedWidth) &&
