@@ -444,6 +444,9 @@ class _RenderSheetTranslate extends RenderTransform {
         viewportViewPadding: _viewPadding,
       ),
     );
+    // The child width is known only after layout; update the transform now so
+    // a capped sheet is centered in the full-width viewport.
+    _invalidateTransformMatrix();
   }
 
   void _invalidateTransformMatrix() {
