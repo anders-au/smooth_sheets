@@ -380,6 +380,11 @@ class _RenderSheetTranslate extends RenderTransform {
        ) {
     model.addRectListener(_invalidateTransformMatrix);
     _invalidateTransformMatrix();
+    debugPrint(
+      '[smooth_sheets] viewport=$size sheetWidth=$sheetWidth '
+      'child=${child!.size} viewportWidth=$_viewportWidth '
+      'transform=${transform.storage}',
+    );
   }
 
   SheetModelView _model;
