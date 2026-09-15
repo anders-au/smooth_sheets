@@ -303,6 +303,7 @@ class SheetViewportState extends State<SheetViewport> {
       child: _SheetTranslate(
         padding: widget.padding,
         maxWidth: widget.maxWidth,
+        viewportWidth: MediaQuery.sizeOf(context).width,
         child: widget.child,
       ),
     );
@@ -329,16 +330,19 @@ class _SheetTranslate extends SingleChildRenderObjectWidget {
     required super.child,
     required this.padding,
     required this.maxWidth,
+    required this.viewportWidth,
   });
 
   final EdgeInsets padding;
   final double? maxWidth;
+  final double viewportWidth;
   @override
   RenderObject createRenderObject(BuildContext context) {
     return _RenderSheetTranslate(
       model: SheetViewportState.of(context)!._modelView,
       padding: padding,
       maxWidth: maxWidth,
+      viewportWidth: viewportWidth,
       viewInsets: MediaQuery.viewInsetsOf(context),
       viewPadding: MediaQuery.viewPaddingOf(context),
     );
@@ -350,6 +354,7 @@ class _SheetTranslate extends SingleChildRenderObjectWidget {
       ..model = SheetViewportState.of(context)!._modelView
       ..padding = padding
       ..maxWidth = maxWidth
+      ..viewportWidth = viewportWidth
       ..viewInsets = MediaQuery.viewInsetsOf(context)
       ..viewPadding = MediaQuery.viewPaddingOf(context);
   }
@@ -360,11 +365,13 @@ class _RenderSheetTranslate extends RenderTransform {
     required SheetModelView model,
     required EdgeInsets padding,
     required double? maxWidth,
+    required double viewportWidth,
     required EdgeInsets viewInsets,
     required EdgeInsets viewPadding,
   }) : _model = model,
        _padding = padding,
        _maxWidth = maxWidth,
+       _viewportWidth = viewportWidth,
        _viewInsets = viewInsets,
        _viewPadding = viewPadding,
        super(
@@ -388,6 +395,7 @@ class _RenderSheetTranslate extends RenderTransform {
 
   EdgeInsets _padding;
   double? _maxWidth;
+  double _viewportWidth;
   // ignore: avoid_setters_without_getters
   set padding(EdgeInsets value) {
     if (_padding != value) {
@@ -400,6 +408,13 @@ class _RenderSheetTranslate extends RenderTransform {
     if (_maxWidth != value) {
       _maxWidth = value;
       markNeedsLayout();
+    }
+  }
+
+  set viewportWidth(double value) {
+    if (_viewportWidth != value) {
+      _viewportWidth = value;
+      markNeedsPaint();
     }
   }
 
@@ -474,7 +489,7 @@ class _RenderSheetTranslate extends RenderTransform {
     // Horizontal centering is independent of sheet metrics and must be
     // available during the route's first frame. Vertical translation depends
     // on the model and is applied as soon as its metrics become available.
-    final dx = (size.width - childWidth) / 2;
+    final dx = (_viewportWidth - childWidth) / 2;
     final dy = _model.hasMetrics
         ? _lastMeasuredSize.height - _model.offset
         : 0.0;
