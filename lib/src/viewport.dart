@@ -6,6 +6,7 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/scheduler.dart';
 
 import 'model.dart';
 
@@ -421,6 +422,7 @@ class _RenderSheetTranslate extends RenderTransform {
   }
 
   late Size _lastMeasuredSize;
+  bool _initialLayoutRetryScheduled = false;
   @override
   set size(Size value) {
     _lastMeasuredSize = value;
@@ -447,6 +449,14 @@ class _RenderSheetTranslate extends RenderTransform {
     // The child width is known only after layout; update the transform now so
     // a capped sheet is centered in the full-width viewport.
     _invalidateTransformMatrix();
+    if (!_model.hasMetrics && !_initialLayoutRetryScheduled) {
+      _initialLayoutRetryScheduled = true;
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        if (!attached) return;
+        _initialLayoutRetryScheduled = false;
+        markNeedsLayout();
+      });
+    }
   }
 
   void _invalidateTransformMatrix() {
