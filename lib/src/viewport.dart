@@ -423,6 +423,7 @@ class _RenderSheetTranslate extends RenderTransform {
 
   late Size _lastMeasuredSize;
   bool _initialLayoutRetryScheduled = false;
+  int _initialLayoutRetryCount = 0;
   @override
   set size(Size value) {
     _lastMeasuredSize = value;
@@ -449,13 +450,20 @@ class _RenderSheetTranslate extends RenderTransform {
     // The child width is known only after layout; update the transform now so
     // a capped sheet is centered in the full-width viewport.
     _invalidateTransformMatrix();
-    if (!_model.hasMetrics && !_initialLayoutRetryScheduled) {
+    final expectedWidth = (_maxWidth ?? size.width).clamp(0.0, size.width);
+    final childWidth = child!.size.width;
+    if ((!_model.hasMetrics || childWidth != expectedWidth) &&
+        _initialLayoutRetryCount < 3 &&
+        !_initialLayoutRetryScheduled) {
+      _initialLayoutRetryCount++;
       _initialLayoutRetryScheduled = true;
       SchedulerBinding.instance.addPostFrameCallback((_) {
-        if (!attached) return;
         _initialLayoutRetryScheduled = false;
+        if (!attached) return;
         markNeedsLayout();
       });
+    } else if (_model.hasMetrics && childWidth == expectedWidth) {
+      _initialLayoutRetryCount = 3;
     }
   }
 
