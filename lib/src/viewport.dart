@@ -442,6 +442,7 @@ class _RenderSheetTranslate extends RenderTransform {
   }
 
   late Size _lastMeasuredSize;
+  double? _lastChildWidth;
   bool _initialLayoutRetryScheduled = false;
   int _initialLayoutRetryCount = 0;
   @override
@@ -466,16 +467,14 @@ class _RenderSheetTranslate extends RenderTransform {
         viewportPadding: _padding,
         viewportViewPadding: _viewPadding,
       ),
+      parentUsesSize: true,
     );
     // The child width is known only after layout; update the transform now so
     // a capped sheet is centered in the full-width viewport.
     _invalidateTransformMatrix();
-    print(
-      'smooth_sheets geometry constraints=$constraints size=$size '
-      'child=${child!.size} viewport=$_viewportWidth transform=$_transform',
-    );
     final expectedWidth = (_maxWidth ?? size.width).clamp(0.0, size.width);
     final childWidth = child!.size.width;
+    _lastChildWidth = childWidth;
     if ((!_model.hasMetrics || childWidth != expectedWidth) &&
         _initialLayoutRetryCount < 3 &&
         !_initialLayoutRetryScheduled) {
@@ -492,7 +491,7 @@ class _RenderSheetTranslate extends RenderTransform {
   }
 
   void _invalidateTransformMatrix() {
-    final childWidth = child?.size.width;
+    final childWidth = _lastChildWidth;
     if (childWidth == null) return;
 
     // Horizontal centering is independent of sheet metrics and must be
