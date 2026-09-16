@@ -1035,7 +1035,7 @@ class _FadeForwardPageTransitionWithAnimationLessBackGestureState
       context,
       widget.animation,
       widget.secondaryAnimation,
-      widget.child,
+      SizedBox.expand(child: widget.child),
     );
   }
 }
