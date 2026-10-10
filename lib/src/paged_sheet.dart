@@ -342,6 +342,12 @@ class _PagedSheetModel extends SheetModel<_PagedSheetModelConfig>
     Animation<double> animation,
     bool isUserGestureInProgress,
   ) {
+    if (!hasMetrics) {
+      // A restored Navigator can start a transition before its new sheet
+      // model has been laid out. There is no measured offset to animate from.
+      didEndTransition(targetEntry);
+      return;
+    }
     _currentEntry = null;
 
     final Curve effectiveCurve;
@@ -369,7 +375,16 @@ class _PagedSheetModel extends SheetModel<_PagedSheetModelConfig>
   void didEndTransition(_PagedSheetEntry entry) {
     _currentEntry = entry;
     didChangeInternalStateOfEntry(entry);
-    if (entry._contentSize != null) {
+    if (!hasMetrics && entry._contentSize != null) {
+      // Route entries can retain measurements from an earlier sheet model.
+      // Initialize against this model's first layout, not those cached sizes.
+      beginActivity(
+        InitialSheetActivity<_PagedSheetModel>(
+          preferredInitialOffset:
+              entry._lastSettledOffset ?? entry.initialOffset,
+        ),
+      );
+    } else if (entry._contentSize != null) {
       goIdle();
     } else {
       // The new route size is not yet available, so we cannot determine the
