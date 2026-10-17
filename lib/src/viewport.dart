@@ -4,9 +4,9 @@ library;
 import 'dart:math';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/widgets.dart';
 
 import 'model.dart';
 
@@ -89,10 +89,10 @@ typedef SheetLayoutListenable = ValueListenable<SheetLayout?>;
 class SheetMediaQuery extends StatelessWidget {
   @visibleForTesting
   const SheetMediaQuery({
-    super.key,
     required this.layoutSpec,
     required this.layoutNotifier,
     required this.child,
+    super.key,
   });
 
   final SheetLayoutSpec layoutSpec;
@@ -223,10 +223,10 @@ class _InheritedSheetMediaQuery extends InheritedWidget {
 
 class SheetViewport extends StatefulWidget {
   const SheetViewport({
+    required this.child,
     super.key,
     this.padding = EdgeInsets.zero,
     this.maxWidth,
-    required this.child,
   });
 
   /// The inset the viewport applies to the [child].
@@ -632,10 +632,9 @@ class _DebugAssertSheetDecorationUsage extends SingleChildRenderObjectWidget {
 
 class _RenderDebugAssertSheetDecorationUsage extends RenderProxyBox {
   _RenderDebugAssertSheetDecorationUsage({
-    required Type sheetDecorationType,
-    required SheetLayoutSpec expectedLayoutSpec,
-  }) : _sheetDecorationType = sheetDecorationType,
-       _expectedLayoutSpec = expectedLayoutSpec;
+    required this._sheetDecorationType,
+    required this._expectedLayoutSpec,
+  });
 
   Type _sheetDecorationType;
   // ignore: avoid_setters_without_getters
@@ -682,10 +681,10 @@ class _RenderDebugAssertSheetDecorationUsage extends RenderProxyBox {
 @internal
 class BareSheet extends StatefulWidget {
   const BareSheet({
+    required this.child,
     super.key,
     this.padding = EdgeInsets.zero,
     this.decoration = const DefaultSheetDecoration(),
-    required this.child,
   });
 
   /// {@template viewport.BareSheet.padding}
@@ -900,11 +899,9 @@ class _RenderSheetSkelton extends RenderShiftedBox {
   _RenderSheetSkelton({
     required this.layoutNotifier,
     required _LazySheetModelView model,
-    required SheetLayoutSpec layoutSpec,
-    required _GetPreferredExtent getPreferredExtent,
+    required this._layoutSpec,
+    required this._getPreferredExtent,
   }) : _model = model,
-       _layoutSpec = layoutSpec,
-       _getPreferredExtent = getPreferredExtent,
        super(null) {
     model.addListener(_invalidatePreferredExtent);
     _invalidatePreferredExtent();

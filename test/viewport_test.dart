@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:smooth_sheets/src/activity.dart';
 import 'package:smooth_sheets/src/decorations.dart';
 import 'package:smooth_sheets/src/gesture_proxy.dart';
@@ -19,9 +19,9 @@ void main() {
   group('SheetViewport', () {
     ({Widget testWidget}) boilerplate({
       required SheetModel model,
+      required Widget Function(Widget child) builder,
       EdgeInsets viewInsets = EdgeInsets.zero,
       EdgeInsets viewPadding = EdgeInsets.zero,
-      required Widget Function(Widget child) builder,
     }) {
       final testWidget = MediaQuery(
         data: MediaQueryData(
@@ -1171,8 +1171,7 @@ class _TestSheetModel extends SheetModel {
 }
 
 class _TestSheetDecoration implements SheetDecoration {
-  const _TestSheetDecoration({required double preferredExtent})
-    : _preferredExtent = preferredExtent;
+  const _TestSheetDecoration({required this._preferredExtent});
 
   final double _preferredExtent;
 
