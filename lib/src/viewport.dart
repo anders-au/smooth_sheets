@@ -300,17 +300,17 @@ class SheetViewportState extends State<SheetViewport> {
 
     final viewportWidth =
         View.of(context).physicalSize.width / View.of(context).devicePixelRatio;
+    final translate = _SheetTranslate(
+      padding: widget.padding,
+      maxWidth: widget.maxWidth,
+      viewportWidth: viewportWidth,
+      child: widget.child,
+    );
     return _InheritedSheetViewport(
       state: this,
-      child: SizedBox(
-        width: viewportWidth,
-        child: _SheetTranslate(
-          padding: widget.padding,
-          maxWidth: widget.maxWidth,
-          viewportWidth: viewportWidth,
-          child: widget.child,
-        ),
-      ),
+      child: widget.maxWidth == null
+          ? translate
+          : SizedBox(width: viewportWidth, child: translate),
     );
   }
 
@@ -368,17 +368,12 @@ class _SheetTranslate extends SingleChildRenderObjectWidget {
 class _RenderSheetTranslate extends RenderTransform {
   _RenderSheetTranslate({
     required SheetModelView model,
-    required EdgeInsets padding,
-    required double? maxWidth,
-    required double viewportWidth,
-    required EdgeInsets viewInsets,
-    required EdgeInsets viewPadding,
+    required this._padding,
+    required this._maxWidth,
+    required this._viewportWidth,
+    required this._viewInsets,
+    required this._viewPadding,
   }) : _model = model,
-       _padding = padding,
-       _maxWidth = maxWidth,
-       _viewportWidth = viewportWidth,
-       _viewInsets = viewInsets,
-       _viewPadding = viewPadding,
        super(
          transform: Matrix4.zero()..setIdentity(),
          transformHitTests: true,
@@ -409,6 +404,7 @@ class _RenderSheetTranslate extends RenderTransform {
     }
   }
 
+  // ignore: avoid_setters_without_getters
   set maxWidth(double? value) {
     if (_maxWidth != value) {
       _maxWidth = value;
@@ -416,6 +412,7 @@ class _RenderSheetTranslate extends RenderTransform {
     }
   }
 
+  // ignore: avoid_setters_without_getters
   set viewportWidth(double value) {
     if (_viewportWidth != value) {
       _viewportWidth = value;
@@ -467,14 +464,15 @@ class _RenderSheetTranslate extends RenderTransform {
         viewportPadding: _padding,
         viewportViewPadding: _viewPadding,
       ),
-      parentUsesSize: true,
+      parentUsesSize: _maxWidth != null,
     );
+    if (_maxWidth == null) return;
     // The child width is known only after layout; update the transform now so
     // a capped sheet is centered in the full-width viewport.
-    _invalidateTransformMatrix();
     final expectedWidth = (_maxWidth ?? size.width).clamp(0.0, size.width);
     final childWidth = child!.size.width;
     _lastChildWidth = childWidth;
+    _invalidateTransformMatrix();
     if ((!_model.hasMetrics || childWidth != expectedWidth) &&
         _initialLayoutRetryCount < 3 &&
         !_initialLayoutRetryScheduled) {
@@ -491,6 +489,16 @@ class _RenderSheetTranslate extends RenderTransform {
   }
 
   void _invalidateTransformMatrix() {
+    if (_maxWidth == null) {
+      if (_model.hasMetrics) {
+        transform = Matrix4.translationValues(
+          _padding.left,
+          _lastMeasuredSize.height - _model.offset,
+          0,
+        );
+      }
+      return;
+    }
     final childWidth = _lastChildWidth;
     if (childWidth == null) return;
 

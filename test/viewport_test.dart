@@ -6,6 +6,7 @@ import 'package:smooth_sheets/src/decorations.dart';
 import 'package:smooth_sheets/src/gesture_proxy.dart';
 import 'package:smooth_sheets/src/model.dart';
 import 'package:smooth_sheets/src/physics.dart';
+import 'package:smooth_sheets/src/sheet.dart';
 import 'package:smooth_sheets/src/snap_grid.dart';
 import 'package:smooth_sheets/src/viewport.dart';
 
@@ -16,6 +17,30 @@ import 'src/stubbing.dart';
 import 'src/test_stateful_widget.dart';
 
 void main() {
+  testWidgets('maxWidth keeps a capped sheet centered in a full viewport', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: SheetViewport(
+          maxWidth: 400,
+          child: Sheet(
+            child: SizedBox(height: 200, child: Text('Capped content')),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+
+    final sheetRect = tester.getRect(find.byType(Sheet));
+    final viewportRect = tester.getRect(find.byType(SheetViewport));
+    expect(viewportRect.width, testScreenSize.width);
+    expect(sheetRect.width, 400);
+    expect(sheetRect.center.dx, viewportRect.center.dx);
+    expect(tester.takeException(), isNull);
+  });
+
   group('SheetViewport', () {
     ({Widget testWidget}) boilerplate({
       required SheetModel model,
