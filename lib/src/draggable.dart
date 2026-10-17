@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 
@@ -88,9 +87,9 @@ class _SheetDragConfigurationDisabled implements SheetDragConfiguration {
 @internal
 class SheetDraggable extends StatefulWidget {
   const SheetDraggable({
-    super.key,
     required this.configuration,
     required this.child,
+    super.key,
   });
 
   final SheetDragConfiguration configuration;
