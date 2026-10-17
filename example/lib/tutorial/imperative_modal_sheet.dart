@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:smooth_sheets/smooth_sheets.dart';
 
 void main() {
@@ -59,7 +59,7 @@ class _ExampleSheet extends StatelessWidget {
       onPopInvokedWithResult: (didPop, _) async {
         if (!didPop) {
           final shouldPop = await showConfirmationDialog(context);
-          if (shouldPop == true && context.mounted) {
+          if ((shouldPop ?? false) && context.mounted) {
             Navigator.pop(context);
           }
         }

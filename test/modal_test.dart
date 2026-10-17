@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:smooth_sheets/smooth_sheets.dart';
 
 import 'src/flutter_test_x.dart';
@@ -35,7 +35,7 @@ class _Boilerplate extends StatelessWidget {
 }
 
 class _BoilerplateWithPagesApi extends StatefulWidget {
-  const _BoilerplateWithPagesApi({super.key, required this.initialPages});
+  const _BoilerplateWithPagesApi({required this.initialPages, super.key});
 
   final List<Page<dynamic>> initialPages;
 

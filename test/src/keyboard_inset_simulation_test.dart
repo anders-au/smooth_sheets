@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'flutter_test_x.dart';
 import 'keyboard_inset_simulation.dart';
@@ -13,9 +13,9 @@ void main() {
   });
 
   Widget boilerplate({
+    required ValueSetter<MediaQueryData> onBuild,
     double keyboardHeight = 300,
     MediaQueryData? ancestorMediaQuery,
-    required ValueSetter<MediaQueryData> onBuild,
   }) {
     Widget child = KeyboardInsetSimulation(
       key: simulationKey,

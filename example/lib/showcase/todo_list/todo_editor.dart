@@ -1,6 +1,6 @@
 import 'package:cookbook/showcase/todo_list/models.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:smooth_sheets/smooth_sheets.dart';
 
 Future<Todo?> showTodoEditor(BuildContext context) {
@@ -343,7 +343,7 @@ class _FolderSelector extends StatelessWidget {
 class _EditingController extends ChangeNotifier {
   _EditingController() {
     title.addListener(() {
-      _canCompose.value = title.value?.isNotEmpty == true;
+      _canCompose.value = title.value?.isNotEmpty ?? false;
     });
   }
 

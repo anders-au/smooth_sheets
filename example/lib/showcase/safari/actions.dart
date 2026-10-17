@@ -1,6 +1,6 @@
 import 'package:cookbook/showcase/safari/common.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:smooth_sheets/smooth_sheets.dart';
 
 void showEditActionsSheet(BuildContext context) {
@@ -95,7 +95,7 @@ class _ActionList extends StatelessWidget {
 }
 
 class _ActionListSection extends StatelessWidget {
-  const _ActionListSection({this.header, required this.children});
+  const _ActionListSection({required this.children, this.header});
 
   final Widget? header;
   final List<Widget> children;

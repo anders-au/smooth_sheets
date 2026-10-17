@@ -5,9 +5,9 @@ library;
 import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:navigator_resizable/navigator_resizable.dart';
 
 import 'activity.dart';
@@ -186,9 +186,9 @@ class _ResolvedPagedSheetRouteThemeData extends PagedSheetRouteThemeData {
 class PagedSheetRouteTheme extends InheritedWidget {
   /// Creates a [PagedSheetRouteTheme].
   const PagedSheetRouteTheme({
-    super.key,
     required this.data,
     required super.child,
+    super.key,
   });
 
   /// The theme data for route defaults.
@@ -226,8 +226,8 @@ class _PagedSheetModelConfig extends SheetModelConfig {
   const _PagedSheetModelConfig({
     required super.physics,
     required super.gestureProxy,
-    super.snapGrid = _kDefaultSnapGrid,
     required this.offsetInterpolationCurve,
+    super.snapGrid = _kDefaultSnapGrid,
   });
 
   final Curve offsetInterpolationCurve;
@@ -342,6 +342,12 @@ class _PagedSheetModel extends SheetModel<_PagedSheetModelConfig>
     Animation<double> animation,
     bool isUserGestureInProgress,
   ) {
+    if (!hasMetrics) {
+      // A restored Navigator can start a transition before its new sheet
+      // model has been laid out. There is no measured offset to animate from.
+      didEndTransition(targetEntry);
+      return;
+    }
     _currentEntry = null;
 
     final Curve effectiveCurve;
@@ -369,7 +375,16 @@ class _PagedSheetModel extends SheetModel<_PagedSheetModelConfig>
   void didEndTransition(_PagedSheetEntry entry) {
     _currentEntry = entry;
     didChangeInternalStateOfEntry(entry);
-    if (entry._contentSize != null) {
+    if (!hasMetrics && entry._contentSize != null) {
+      // Route entries can retain measurements from an earlier sheet model.
+      // Initialize against this model's first layout, not those cached sizes.
+      beginActivity(
+        InitialSheetActivity<_PagedSheetModel>(
+          preferredInitialOffset:
+              entry._lastSettledOffset ?? entry.initialOffset,
+        ),
+      );
+    } else if (entry._contentSize != null) {
       goIdle();
     } else {
       // The new route size is not yet available, so we cannot determine the
@@ -504,6 +519,7 @@ class _PostTransitionWithoutAnimationActivity
 
 class PagedSheet extends StatelessWidget {
   const PagedSheet({
+    required this.navigator,
     super.key,
     this.controller,
     this.physics = kDefaultSheetPhysics,
@@ -511,7 +527,6 @@ class PagedSheet extends StatelessWidget {
     this.decoration = const DefaultSheetDecoration(),
     this.padding = EdgeInsets.zero,
     this.builder,
-    required this.navigator,
   });
 
   final SheetController? controller;
@@ -854,6 +869,7 @@ class PagedSheetRoute<T> extends _BasePagedSheetRoute<T> {
   /// See [PagedSheetRouteThemeData] for [PagedSheet] related parameters
   /// such as [scrollConfiguration], and [dragConfiguration].
   PagedSheetRoute({
+    required this.builder,
     super.settings,
     this.maintainState = true,
     SheetScrollConfiguration? scrollConfiguration,
@@ -862,7 +878,6 @@ class PagedSheetRoute<T> extends _BasePagedSheetRoute<T> {
     SheetOffset? initialOffset,
     SheetSnapGrid? snapGrid,
     RouteTransitionsBuilder? transitionsBuilder,
-    required this.builder,
   }) : _theme = PagedSheetRouteThemeData(
          scrollConfiguration: scrollConfiguration,
          dragConfiguration: dragConfiguration,
@@ -897,6 +912,7 @@ class PagedSheetPage<T> extends Page<T> {
   /// See [PagedSheetRouteThemeData] for [PagedSheet] related parameters
   /// such as [scrollConfiguration], and [dragConfiguration].
   PagedSheetPage({
+    required this.child,
     super.key,
     super.name,
     super.arguments,
@@ -908,7 +924,6 @@ class PagedSheetPage<T> extends Page<T> {
     SheetSnapGrid? snapGrid,
     Duration? transitionDuration,
     RouteTransitionsBuilder? transitionsBuilder,
-    required this.child,
   }) : _theme = PagedSheetRouteThemeData(
          scrollConfiguration: scrollConfiguration,
          dragConfiguration: dragConfiguration,
@@ -1035,7 +1050,7 @@ class _FadeForwardPageTransitionWithAnimationLessBackGestureState
       context,
       widget.animation,
       widget.secondaryAnimation,
-      SizedBox.expand(child: widget.child),
+      widget.child,
     );
   }
 }

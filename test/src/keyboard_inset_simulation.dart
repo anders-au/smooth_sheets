@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// A widget that simulates [MediaQueryData.viewInsets] as if the keyboard
@@ -16,9 +16,9 @@ import 'package:flutter_test/flutter_test.dart';
 /// change the `viewInsets` value.
 class KeyboardInsetSimulation extends StatefulWidget {
   const KeyboardInsetSimulation({
-    super.key,
     required this.keyboardHeight,
     required this.child,
+    super.key,
   });
 
   final double keyboardHeight;

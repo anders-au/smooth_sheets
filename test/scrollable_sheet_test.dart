@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:smooth_sheets/src/controller.dart';
 import 'package:smooth_sheets/src/keyboard_dismissible.dart';
 import 'package:smooth_sheets/src/model.dart';
@@ -14,7 +14,7 @@ import 'package:smooth_sheets/src/viewport.dart';
 import 'src/keyboard_inset_simulation.dart';
 
 class _TestApp extends StatelessWidget {
-  const _TestApp({this.useMaterial = false, required this.child});
+  const _TestApp({required this.child, this.useMaterial = false});
 
   final bool useMaterial;
   final Widget child;

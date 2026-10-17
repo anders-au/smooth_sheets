@@ -1,6 +1,6 @@
 import 'package:cookbook/showcase/safari/common.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:smooth_sheets/smooth_sheets.dart';
 
 void showEditBookmarkSheet(BuildContext context) {
@@ -17,9 +17,9 @@ void showEditBookmarkSheet(BuildContext context) {
 
 class EditBookmarkSheet extends StatelessWidget {
   const EditBookmarkSheet({
-    super.key,
     required this.pageUrl,
     required this.faviconUrl,
+    super.key,
   });
 
   final String pageUrl;
