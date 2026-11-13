@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:collection/collection.dart';
 import 'package:flutter/widgets.dart';
 import 'package:smooth_sheets/src/activity.dart';
@@ -391,6 +393,71 @@ void main() {
         expect(sheetTopHistory, fluctuationEquals([-1, 1]));
       },
     );
+
+    testWidgets(
+      'Sheet should snap when released if not fully expanded, '
+      'regardless of the scroll position (velocity: 0)',
+      (tester) async {
+        final env = boilerplate(initialOffset: SheetOffset.absolute(600));
+        await tester.pumpWidget(env.testWidget);
+
+        // Collapse the sheet without resetting the content's scroll offset,
+        // e.g., by dragging a handle on top of the scrollview.
+        env.scrollController.jumpTo(200);
+        unawaited(env.controller.animateTo(SheetOffset.absolute(300)));
+        await tester.pumpAndSettle();
+        expect(tester.getRect(find.byId('sheet')).top, 300);
+        expect(env.scrollController.offset, 200);
+
+        // Start dragging the sheet upward and stop at partway,
+        // between the two snap points.
+        final gesture = await tester.startDrag(
+          tester.getCenter(find.byId('sheet')),
+          AxisDirection.up,
+        );
+        await gesture.moveUpwardBy(100 - kDragSlopDefault);
+        await tester.pumpAndSettle();
+        expect(tester.getRect(find.byId('sheet')).top, 200);
+        expect(env.scrollController.offset, 200);
+
+        await gesture.up();
+        await tester.pumpAndSettle();
+        expect(
+          tester.getRect(find.byId('sheet')).top,
+          300,
+          reason: 'The sheet should snap to the nearest snap offset',
+        );
+        expect(env.scrollController.offset, 200);
+      },
+    );
+
+    testWidgets(
+      'Sheet should snap when released if not fully expanded, '
+      'regardless of the scroll position (velocity: 200)',
+      (tester) async {
+        final env = boilerplate(initialOffset: SheetOffset.absolute(600));
+        await tester.pumpWidget(env.testWidget);
+
+        env.scrollController.jumpTo(200);
+        unawaited(env.controller.animateTo(SheetOffset.absolute(300)));
+        await tester.pumpAndSettle();
+        expect(tester.getRect(find.byId('sheet')).top, 300);
+        expect(env.scrollController.offset, 200);
+
+        await tester.flingFrom(
+          tester.getCenter(find.byId('sheet')),
+          Offset(0, -50),
+          200,
+        );
+        await tester.pumpAndSettle();
+        expect(
+          tester.getRect(find.byId('sheet')).top,
+          0,
+          reason: 'The sheet should snap to the next snap offset upward',
+        );
+        expect(env.scrollController.offset, 200);
+      },
+    );
   });
 
   group('Bouncing motion consistency test', () {
@@ -522,8 +589,8 @@ void main() {
     );
 
     testWidgets(
-      'onlyFromTop: sheet should move downward when scrollable is overscrolled '
-      'and the scroll starts from the top',
+      'onlyFromTop: if scroll starts from the top, '
+      'sheet and scroll positions should be synced as usual',
       (tester) async {
         final env = boilerplate(
           scrollConfiguration: SheetScrollConfiguration(
@@ -547,6 +614,76 @@ void main() {
         await tester.pumpAndSettle();
         expect(tester.getTopLeft(find.byId('sheet')).dy, 300);
         expect(env.scrollController.offset, 100);
+      },
+    );
+
+    testWidgets(
+      'onlyFromTop: scroll position inside the torelance around 0 '
+      'should also be considered as top',
+      (tester) async {
+        final env = boilerplate(
+          scrollConfiguration: SheetScrollConfiguration(
+            scrollSyncMode: SheetScrollHandlingBehavior.onlyFromTop,
+          ),
+        );
+        await tester.pumpWidget(env.testWidget);
+        expect(tester.getTopLeft(find.byId('sheet')).dy, 300);
+        expect(env.scrollController.offset, 0);
+
+        await tester.dragUpward(find.byId('scrollable'), deltaY: 100);
+        await tester.pumpAndSettle();
+        expect(env.scrollController.offset, 100);
+
+        // Overscroll the content past its top edge, then release it
+        // to start the bouncing-back animation.
+        await tester.dragDownward(find.byId('scrollable'), deltaY: 200);
+        expect(
+          env.scrollController.offset,
+          isNot(moreOrLessEquals(0, epsilon: kOnlyFromTopScrollTolerance)),
+        );
+        while (env.scrollController.offset.abs() >
+            kOnlyFromTopScrollTolerance) {
+          await tester.pump(Duration(milliseconds: 16));
+        }
+        expect(
+          env.scrollController.offset,
+          allOf(greaterThan(-kOnlyFromTopScrollTolerance), isNot(0)),
+        );
+        expect(tester.getTopLeft(find.byId('sheet')).dy, 300);
+
+        final scrollOffsetHistory = [env.scrollController.offset];
+        env.scrollController.addListener(() {
+          scrollOffsetHistory.add(env.scrollController.offset);
+        });
+
+        // Catch the scrollview while it is still bouncing back,
+        // then drag it downward.
+        final gesture = await tester.startDrag(
+          tester.getCenter(find.byId('sheet')),
+          AxisDirection.down,
+        );
+        await gesture.moveDownwardBy(100);
+        await tester.pumpAndSettle();
+        expect(scrollOffsetHistory, hasLength(1));
+        expect(
+          tester.getTopLeft(find.byId('sheet')).dy,
+          greaterThan(400),
+          reason:
+              'The gesture, which is initiated when the scroll position is '
+              'not zero but inside the torelance, should be handled '
+              'as a sheet drag rather than a scroll.',
+        );
+
+        await gesture.up();
+        await tester.pumpAndSettle();
+        expect(
+          scrollOffsetHistory,
+          allOf(hasLength(greaterThan(2)), isMonotonicallyIncreasing),
+          reason:
+              'The overscroll should gradually settle at the top '
+              'after releasing the sheet.',
+        );
+        expect(env.scrollController.offset, 0);
       },
     );
 
